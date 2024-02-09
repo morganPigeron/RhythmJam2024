@@ -2,6 +2,9 @@ package main
 
 import c "core:c/libc"
 import "core:fmt"
+import "core:math"
+import "core:os"
+import "core:time"
 
 import rl "vendor:raylib"
 
@@ -12,15 +15,32 @@ playing := false
 
 sampleCount: u32 = 0
 
-sampleLeft := [1024]f32{}
-sampleRight := [1024]f32{}
+sampleLeft := [16000]f32{} //OPTIM set this as needed
+sampleRight := [16000]f32{} //OPTIM set this as needed
 
 left: f32 = 0
 right: f32 = 0
 
+display: c.int
+
+image: rl.Image
+texture: rl.Texture
+starTexture: rl.Texture
+
+Particle :: struct {
+	position: rl.Vector2,
+	color:    rl.Color,
+	size:     f32,
+	active:   bool,
+	alpha:    f32,
+}
+
+particles := [200]Particle{}
+
 main :: proc() {
 	init()
 	for !rl.WindowShouldClose() {
+		input()
 		update()
 		draw()
 		clean()
@@ -28,12 +48,38 @@ main :: proc() {
 }
 
 init :: proc() {
-	rl.InitWindow(800, 450, "raylib [core] example - basic window")
+	rl.InitWindow(1920, 1080, "divergent orchestra")
+	display = rl.GetCurrentMonitor()
+	rl.SetWindowSize(rl.GetMonitorWidth(display), rl.GetMonitorHeight(display))
+	rl.ToggleFullscreen()
 	rl.InitAudioDevice()
 	rl.AttachAudioMixedProcessor(processAudio)
-	sound = rl.LoadSound("assets/audio/B.mp3")
+	sound = rl.LoadSound("assets/audio/Toreadors.mp3")
 	rl.SetTargetFPS(60)
 	rl.HideCursor()
+
+	//image
+	image = rl.LoadImage("assets/images/bg.png")
+	rl.ImageResize(&image, rl.GetScreenWidth(), rl.GetScreenHeight())
+	texture = rl.LoadTextureFromImage(image)
+	rl.UnloadImage(image)
+
+	//particles
+	for i in 0 ..< 200 {
+		particles[i].position = rl.Vector2{}
+		particles[i].color = rl.Color {
+			cast(u8)(255 * panLeft),
+			cast(u8)(255 * panRight),
+			cast(u8)(255 * panRight),
+			cast(u8)(255 * (max(panLeft, panRight) - 0.5)),
+		}
+		particles[i].size = 10.0
+		particles[i].active = false
+		particles[i].alpha = 1.0
+	}
+	starTexture = rl.LoadTexture("assets/images/star.png")
+
+	time.sleep(2 * time.Second)
 }
 
 clean :: proc() {
@@ -41,12 +87,14 @@ clean :: proc() {
 	right = 0
 }
 
-update :: proc() {
+input :: proc() {
 	if (rl.IsKeyPressed(rl.KeyboardKey.SPACE)) {
 		rl.PlaySound(sound)
 		playing = true
 	}
+}
 
+update :: proc() {
 	for sample in sampleLeft[:sampleCount] {
 		left += sample
 
@@ -54,19 +102,24 @@ update :: proc() {
 	for sample in sampleRight[:sampleCount] {
 		right += sample
 	}
-	fmt.print("sample", sampleCount, "Left: ", left, " Right: ", right, "\n")
-
 }
+
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.RAYWHITE)
-	rl.DrawText(
-		"Press space to play the music",
-		rl.GetScreenWidth() / 2 - 170,
-		rl.GetScreenHeight() / 2 - 20,
-		20,
-		rl.LIGHTGRAY,
-	)
+
+	rl.DrawTexture(texture, 0, 0, rl.WHITE)
+
+	if !playing {
+		rl.DrawText(
+			"Press space to play the music",
+			rl.GetScreenWidth() / 2 - 170,
+			rl.GetScreenHeight() / 2 - 20,
+			20,
+			rl.LIGHTGRAY,
+		)
+	}
+
 	if playing {
 		rl.DrawCircleV(
 			rl.GetMousePosition(),
@@ -80,14 +133,17 @@ draw :: proc() {
 		)
 	}
 
-	height: f32 = cast(f32)rl.GetScreenHeight()
-	width: f32 = cast(f32)rl.GetScreenWidth()
+	width := cast(f32)(rl.GetScreenWidth())
+	height := cast(f32)(rl.GetScreenHeight())
+
+	rectWidth: i32 = cast(i32)math.ceil(width / (f32(sampleCount) / 2))
 
 	for i in 0 ..< sampleCount {
-		/*
-		rl.DrawPixel(
-			cast(i32)(sampleRight[i] * width * 2 + width / 2),
-			cast(i32)(sampleLeft[i] * height * 2 + height / 2),
+		rl.DrawRectangle(
+			i32(i) * i32(rectWidth),
+			i32(height) / 2,
+			i32(rectWidth),
+			i32(sampleLeft[i] * 2000),
 			rl.Color {
 				cast(u8)(255 * panLeft),
 				cast(u8)(255 * panRight),
@@ -95,20 +151,23 @@ draw :: proc() {
 				255,
 			},
 		)
-		*/
-		rl.DrawLine(
-			cast(i32)(sampleRight[i] * width * 2 + width / 2),
-			cast(i32)(sampleLeft[i] * height * 2 + height / 2),
-			cast(i32)(sampleRight[i + 1] * width * 2 + width / 2),
-			cast(i32)(sampleLeft[i + 1] * height * 2 + height / 2),
-			rl.Color {
-				cast(u8)(255 * panLeft),
-				cast(u8)(255 * panRight),
-				cast(u8)(255 * panRight),
-				255,
-			},
+		rl.DrawRectangle(
+			i32(i) * rectWidth,
+			i32(height) / 2 - i32(sampleRight[i] * 2000),
+			rectWidth,
+			i32(sampleRight[i] * 2000),
+			rl.Color{255, 127, 100, 255},
 		)
 
+		rl.DrawCircleSector(
+			rl.Vector2{f32(i32(i) * rectWidth), height / 4},
+			(sampleRight[i] * 200),
+			0,
+			180,
+			10,
+			rl.Color{255, 0, 0, 255},
+		)
+		//calculate fft on sampleLeft and sampleRight
 	}
 
 	rl.EndDrawing()
