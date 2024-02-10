@@ -7,10 +7,20 @@ import rl "vendor:raylib"
 import "../global"
 
 
-init :: proc () {
-    rl.InitAudioDevice()
-    rl.AttachAudioMixedProcessor(processAudio)
-    global.sound = rl.LoadSound("assets/audio/Toreadors.mp3")
+init :: proc() {
+	rl.InitAudioDevice()
+	rl.AttachAudioMixedProcessor(processAudio)
+	global.sound = rl.LoadSound("assets/audio/Toreadors.mp3")
+}
+
+update :: proc() {
+	for sample in global.sampleLeft[:global.sampleCount] {
+		global.left += sample
+
+	}
+	for sample in global.sampleRight[:global.sampleCount] {
+		global.right += sample
+	}
 }
 
 processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {

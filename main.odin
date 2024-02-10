@@ -9,19 +9,10 @@ import "core:time"
 import "audio"
 import "effect"
 import "global"
+import "graphics"
+import "maestro"
 
 import rl "vendor:raylib"
-
-
-Particle :: struct {
-	position: rl.Vector2,
-	color:    rl.Color,
-	size:     f32,
-	active:   bool,
-	alpha:    f32,
-}
-
-particles := [200]Particle{}
 
 main :: proc() {
 	init()
@@ -29,46 +20,23 @@ main :: proc() {
 		input()
 		update()
 		draw()
-		clean()
 	}
 }
 
 init :: proc() {
+	// set full screen
 	rl.InitWindow(1920, 1080, "divergent orchestra")
 	global.display = rl.GetCurrentMonitor()
 	rl.SetWindowSize(rl.GetMonitorWidth(global.display), rl.GetMonitorHeight(global.display))
 	rl.ToggleFullscreen()
-	audio.init()
 	rl.SetTargetFPS(60)
 	rl.HideCursor()
 
-	//image
-	global.image = rl.LoadImage("assets/images/bg.png")
-	rl.ImageResize(&global.image, rl.GetScreenWidth(), rl.GetScreenHeight())
-	global.texture = rl.LoadTextureFromImage(global.image)
-	rl.UnloadImage(global.image)
+	audio.init()
+	graphics.init()
 
-	//particles
-	for i in 0 ..< 200 {
-		particles[i].position = rl.Vector2{}
-		particles[i].color = rl.Color {
-			cast(u8)(255 * global.panLeft),
-			cast(u8)(255 * global.panRight),
-			cast(u8)(255 * global.panRight),
-			cast(u8)(255 * (max(global.panLeft, global.panRight) - 0.5)),
-		}
-		particles[i].size = 10.0
-		particles[i].active = false
-		particles[i].alpha = 1.0
-	}
-	global.starTexture = rl.LoadTexture("assets/images/star.png")
-
-	time.sleep(2 * time.Second)
-}
-
-clean :: proc() {
-	global.left = 0
-	global.right = 0
+	// be sure all is loaded before continuing
+	waitForGameLoad()
 }
 
 input :: proc() {
@@ -79,19 +47,12 @@ input :: proc() {
 }
 
 update :: proc() {
-	for sample in global.sampleLeft[:global.sampleCount] {
-		global.left += sample
-
-	}
-	for sample in global.sampleRight[:global.sampleCount] {
-		global.right += sample
-	}
+	audio.update()
 }
 
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.RAYWHITE)
-
 	rl.DrawTexture(global.texture, 0, 0, rl.WHITE)
 
 	if !global.playing {
@@ -105,25 +66,23 @@ draw :: proc() {
 	}
 
 	if global.playing {
-		rl.DrawCircleV(
-			rl.GetMousePosition(),
-			20,
-			rl.Color {
-				cast(u8)(255 * global.panLeft),
-				cast(u8)(255 * global.panRight),
-				cast(u8)(255 * global.panRight),
-				cast(u8)(255 * (max(global.panLeft, global.panRight) - 0.5)),
-			},
-		)
+		maestro.draw()
 	}
 
-	effect.WaveEffect(
-		global.sampleCount,
-		global.sampleLeft[:global.sampleCount],
-		global.sampleRight[:global.sampleCount],
-		global.panLeft,
-		global.panRight,
-	)
+	effect.WaveEffect()
 
 	rl.EndDrawing()
+}
+
+waitForGameLoad :: proc() {
+	ready := false
+	for !ready {
+		if rl.IsAudioDeviceReady() &&
+		   rl.IsSoundReady(global.sound) &&
+		   rl.IsImageReady(global.image) &&
+		   rl.IsWindowReady() &&
+		   rl.IsTextureReady(global.texture) {
+			ready = true
+		}
+	}
 }
