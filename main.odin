@@ -36,6 +36,7 @@ init :: proc() {
 
 	audio.init()
 	graphics.init()
+	maestro.init()
 
 	// be sure all is loaded before continuing
 	waitForGameLoad()

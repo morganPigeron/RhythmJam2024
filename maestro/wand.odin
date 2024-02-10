@@ -6,7 +6,8 @@ notes := [dynamic]note{}
 
 
 init :: proc() {
-
+	notesInFile := from_file("music.csv")
+	append(&notes, ..notesInFile)
 }
 
 draw :: proc() {
@@ -55,5 +56,13 @@ draw :: proc() {
 
 	if rl.IsKeyPressed(rl.KeyboardKey.S) {
 		to_file("music.csv", notes[:])
+	}
+
+	for note in notes {
+		if uint(global.musicTime) == note.time ||
+		   uint(global.musicTime) < (note.time + note.duration) &&
+			   uint(global.musicTime) > note.time {
+			rl.DrawCircle(i32(note.x), i32(note.y), f32(note.size), rl.RED)
+		}
 	}
 }
