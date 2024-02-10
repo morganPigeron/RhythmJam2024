@@ -2,6 +2,13 @@ package maestro
 import "../global"
 import rl "vendor:raylib"
 
+notes := [dynamic]note{}
+
+
+init :: proc() {
+
+}
+
 draw :: proc() {
 	mouse := rl.GetMousePosition()
 
@@ -30,5 +37,23 @@ draw :: proc() {
 	}
 	rl.DrawSplineBezierCubic(&path[0], 4, 5, rl.PINK)
 
-	//rl.CheckCollisionPointPoly()
+	if global.editor {
+		if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+			append(
+				&notes,
+				note {
+					duration = 50,
+					score = 100,
+					size = 20,
+					time = uint(global.musicTime),
+					x = uint(mouse.x),
+					y = uint(mouse.y),
+				},
+			)
+		}
+	}
+
+	if rl.IsKeyPressed(rl.KeyboardKey.S) {
+		to_file("music.csv", notes[:])
+	}
 }

@@ -6,6 +6,9 @@ import rl "vendor:raylib"
 //OPTIM need to reduce this to the minimum needed
 // Contain all global variables
 
+musicTime: u32 = 0
+editor := true
+
 panLeft: f32
 panRight: f32
 sound: rl.Sound
