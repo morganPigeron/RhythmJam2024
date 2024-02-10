@@ -2,6 +2,7 @@ package main
 
 import c "core:c/libc"
 import "core:fmt"
+import "core:log"
 import "core:math"
 import "core:os"
 import "core:time"
@@ -15,6 +16,7 @@ import "maestro"
 import rl "vendor:raylib"
 
 main :: proc() {
+	context.logger = log.create_console_logger()
 	init()
 	for !rl.WindowShouldClose() {
 		input()
@@ -52,7 +54,7 @@ update :: proc() {
 
 draw :: proc() {
 	rl.BeginDrawing()
-	rl.ClearBackground(rl.RAYWHITE)
+	rl.ClearBackground(rl.BLACK)
 	rl.DrawTexture(global.texture, 0, 0, rl.WHITE)
 
 	if !global.playing {
@@ -71,6 +73,7 @@ draw :: proc() {
 
 	effect.WaveEffect()
 
+	debug()
 	rl.EndDrawing()
 }
 
@@ -85,4 +88,8 @@ waitForGameLoad :: proc() {
 			ready = true
 		}
 	}
+}
+
+debug :: proc() {
+	rl.DrawText(fmt.ctprintf("FPS: %v", rl.GetFPS()), 20, 20, 20, rl.LIGHTGRAY)
 }
