@@ -17,8 +17,9 @@ playing := false
 
 sampleCount: u32 = 0
 
-sampleLeft := [16000]f32{} //FIXME set this as needed
-sampleRight := [16000]f32{} //FIXME set this as needed
+samples: [^]f32
+sampleLeft: []f32 = make([]f32, 16000) //FIXME set this as needed and delete it
+sampleRight: []f32 = make([]f32, 16000) //FIXME set this as needed and delete it
 
 left: f32 = 0
 right: f32 = 0

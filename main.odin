@@ -40,9 +40,17 @@ init :: proc() {
 
 	// be sure all is loaded before continuing
 	waitForGameLoad()
+	log.debug("Init done")
 }
 
 input :: proc() {
+
+	mouse := rl.GetMousePosition()
+	screenWidth := cast(f32)rl.GetScreenWidth()
+	// normalize from 1 to 0 and 0 to 1
+	global.panLeft = 1 - (mouse.x / screenWidth)
+	global.panRight = mouse.x / screenWidth
+
 	if (rl.IsKeyPressed(rl.KeyboardKey.SPACE)) {
 		rl.PlaySound(global.sound)
 		global.playing = true
@@ -79,9 +87,8 @@ draw :: proc() {
 
 	if global.playing {
 		maestro.draw()
+		effect.WaveSpectrumEffect()
 	}
-
-	effect.WaveEffect()
 
 	debug()
 	rl.EndDrawing()
@@ -98,6 +105,8 @@ waitForGameLoad :: proc() {
 			ready = true
 		}
 	}
+
+	time.sleep(1000)
 }
 
 debug :: proc() {
