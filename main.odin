@@ -51,6 +51,8 @@ input :: proc() {
 	if (rl.IsKeyPressed(rl.KeyboardKey.E)) {
 		global.editor = !global.editor
 	}
+
+	maestro.input()
 }
 
 update :: proc() {

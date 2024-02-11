@@ -73,7 +73,7 @@ from_file :: proc(path: string) -> []note {
 	data, success := os.read_entire_file_from_filename(path)
 	if !success {
 		log.errorf("Cannot read file %v", path)
-		os.exit(-1)
+		return []note{}
 	}
 
 	text := fmt.aprintf("%s", data)

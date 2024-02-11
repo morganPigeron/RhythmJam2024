@@ -17,6 +17,30 @@ init :: proc() {
 	append(&notes, ..notesInFile)
 }
 
+input :: proc() {
+	mouse := rl.GetMousePosition()
+	if global.editor {
+
+		if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+			append(
+				&notes,
+				note {
+					duration = 150,
+					score = 100,
+					size = 20,
+					time = uint(global.musicTime),
+					x = uint(mouse.x),
+					y = uint(mouse.y),
+				},
+			)
+		}
+
+		if rl.IsKeyPressed(rl.KeyboardKey.S) {
+			to_file("music.csv", notes[:])
+		}
+	}
+}
+
 draw :: proc() {
 	mouse := rl.GetMousePosition()
 
@@ -33,11 +57,6 @@ draw :: proc() {
 	)
 	//outline
 	rl.DrawCircleLinesV(mouse, 20, rl.Color{0, 0, 0, 200})
-
-	//save if we are in editor mode
-	if global.editor && rl.IsKeyPressed(rl.KeyboardKey.S) {
-		to_file("music.csv", notes[:])
-	}
 
 
 	//FIXME this can be optimized if we remove old notes and only check next one
