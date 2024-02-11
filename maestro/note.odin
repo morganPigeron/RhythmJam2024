@@ -17,8 +17,9 @@ note :: struct {
 	score:    uint,
 }
 
+//FIXME return them in chronological order
 from_string :: proc(text: [][]string) -> []note {
-	notes := make([]note, len(text)) //OPTIMIZE: use dynamic array
+	notes := make([]note, len(text))
 	for line, i in text {
 		note := note{}
 		note.time, _ = strconv.parse_uint(line[0])
@@ -76,7 +77,6 @@ from_file :: proc(path: string) -> []note {
 	}
 
 	text := fmt.aprintf("%s", data)
-	log.debug(text)
 	result, err := csv.read_all_from_string(text)
 	if err != nil {
 		log.errorf("Cannot parse file %v", path)

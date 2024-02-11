@@ -3,11 +3,12 @@ package global
 import c "core:c/libc"
 import rl "vendor:raylib"
 
-//OPTIM need to reduce this to the minimum needed
+//FIXME need to reduce this to the minimum needed
 // Contain all global variables
 
 musicTime: u32 = 0
-editor := true
+editor := false
+score := 0
 
 panLeft: f32
 panRight: f32
@@ -16,8 +17,8 @@ playing := false
 
 sampleCount: u32 = 0
 
-sampleLeft := [16000]f32{} //OPTIM set this as needed
-sampleRight := [16000]f32{} //OPTIM set this as needed
+sampleLeft := [16000]f32{} //FIXME set this as needed
+sampleRight := [16000]f32{} //FIXME set this as needed
 
 left: f32 = 0
 right: f32 = 0

@@ -47,6 +47,10 @@ input :: proc() {
 		rl.PlaySound(global.sound)
 		global.playing = true
 	}
+
+	if (rl.IsKeyPressed(rl.KeyboardKey.E)) {
+		global.editor = !global.editor
+	}
 }
 
 update :: proc() {
@@ -97,4 +101,6 @@ waitForGameLoad :: proc() {
 debug :: proc() {
 	rl.DrawText(fmt.ctprintf("FPS: %v", rl.GetFPS()), 20, 20, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Music time: %v", global.musicTime), 20, 40, 20, rl.LIGHTGRAY)
+	rl.DrawText(fmt.ctprintf("Editor mode: %t", global.editor), 20, 60, 20, rl.LIGHTGRAY)
+	rl.DrawText(fmt.ctprintf("Score: %v", global.score), 20, 80, 20, rl.LIGHTGRAY)
 }
