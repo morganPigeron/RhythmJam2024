@@ -87,7 +87,7 @@ draw :: proc() {
 
 	if global.playing {
 		maestro.draw()
-		effect.WaveSpectrumEffect()
+		//effect.WaveEffect()
 	}
 
 	debug()
@@ -114,4 +114,8 @@ debug :: proc() {
 	rl.DrawText(fmt.ctprintf("Music time: %v", global.musicTime), 20, 40, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Editor mode: %t", global.editor), 20, 60, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Score: %v", global.score), 20, 80, 20, rl.LIGHTGRAY)
+    
+    for i in global.sampleCount-10 ..< global.sampleCount {
+	    rl.DrawText(fmt.ctprintf("%v", global.samples[i]), 20, i32(100 +(20*i)), 20, rl.LIGHTGRAY)
+    }
 }

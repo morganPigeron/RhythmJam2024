@@ -5,6 +5,7 @@ import "core:fmt"
 import "core:math"
 import "core:testing"
 import "core:log"
+import "core:slice"
 
 import rl "vendor:raylib"
 
@@ -31,10 +32,11 @@ processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
     
     // context is not available here , keep out any global variable 
     // move logic from this c callback stuff 
-    log.debugf("sizeof buffer : %v  frames :%v", size_of(bufferData), frames)
-    global.samples = transmute([^]f32)bufferData
-
-	global.sampleCount = frames
+    //global.samples : [^]f32 = &bufferData
+    //test := slice.from_ptr(transmute([^]f32)bufferData, int(frames * 2))
+    //test := (cast([^]f32)bufferData)[:frames*2]
+    test:= slice.reinterpret([]f32, slice.from_ptr(bufferData, frames*2))
+	global.sampleCount = frames * 2 
 
 	for frame in 0 ..= frames {
 		global.samples[frame * 2 + 0] *= global.panLeft
