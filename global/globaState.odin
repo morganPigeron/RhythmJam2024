@@ -16,10 +16,9 @@ sound: rl.Sound
 playing := false
 
 sampleCount: u32 = 0
-
-samples: [^]f32
-sampleLeft: []f32 = make([]f32, 16000) //FIXME set this as needed and delete it
-sampleRight: []f32 = make([]f32, 16000) //FIXME set this as needed and delete it
+samples: []f32
+sampleLeft: []f32 = make([]f32, 2048) //FIXME set this as needed and delete it
+sampleRight: []f32 = make([]f32, 2048) //FIXME set this as needed and delete it
 
 left: f32 = 0
 right: f32 = 0

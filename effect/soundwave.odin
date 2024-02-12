@@ -2,17 +2,22 @@ package effect
 
 import "core:log"
 import "core:math"
+import "core:time"
 
 import rl "vendor:raylib"
 
 import "../audio"
 import "../global"
 
+
+//defer delete(samplesToProcessLeft)//NEVER delete memory shared with raylib !!
+//defer delete(samplesToProcessLeft)//NEVER delete memory shared with raylib !!
+
 WaveEffect :: proc() {
 	width := cast(f32)(rl.GetScreenWidth())
 	height := cast(f32)(rl.GetScreenHeight())
 
-	rectWidth: i32 = cast(i32)math.ceil(width / (f32(global.sampleCount) / 2))
+	rectWidth: i32 = cast(i32)math.ceil(width / (f32(global.sampleCount)))
 
 	for i in 0 ..< global.sampleCount {
 		rl.DrawRectangle(
@@ -46,32 +51,36 @@ WaveEffect :: proc() {
 	}
 }
 
+isPowerOfTwo :: #force_inline proc(x: u32) -> bool {
+	return x & (x - 1) == 0
+}
+
 WaveSpectrumEffect :: proc() {
 	width := cast(f32)(rl.GetScreenWidth())
 	height := cast(f32)(rl.GetScreenHeight())
 
 
-	rectWidth: i32 = cast(i32)math.ceil(width / (f32(global.sampleCount)))
-
 	paddedCount := global.sampleCount
-	if paddedCount % 2 != 0 {
-		paddedCount += 1
+	if !isPowerOfTwo(paddedCount) { 	// must be power of two for the fft
+		n: u32 = 1
+		for n < paddedCount {
+			n <<= 1
+		}
+		paddedCount = n
 	}
 
-	samplesToProcessLeft := make([]complex32, paddedCount) // all init to 0 so padded are good
-	defer delete(samplesToProcessLeft)
+	samplesToProcessLeft := make([]complex32, 2048) //FIXME this need to be optimized , 51x or 1024 can be enough
+	samplesToProcessRight := make([]complex32, 2048)
 
-	samplesToProcessRight := make([]complex32, paddedCount) // all init to 0 so padded are good
-	defer delete(samplesToProcessLeft)
-
-	for i in 0 ..< global.sampleCount {
+	for i in 0 ..< len(global.sampleLeft) { 	// watch out max index
 		samplesToProcessLeft[i] = complex(global.sampleLeft[i], 0)
 		samplesToProcessRight[i] = complex(global.sampleRight[i], 0)
 	}
 
-	audio.fft(samplesToProcessLeft)
-	audio.fft(samplesToProcessRight)
+	audio.fft(&samplesToProcessLeft, paddedCount)
+	audio.fft(&samplesToProcessRight, paddedCount)
 
+	rectWidth: i32 = 2
 	for i in 0 ..< global.sampleCount {
 		rl.DrawRectangle(
 			i32(i) * i32(rectWidth),

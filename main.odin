@@ -4,6 +4,7 @@ import c "core:c/libc"
 import "core:fmt"
 import "core:log"
 import "core:math"
+import "core:mem"
 import "core:os"
 import "core:time"
 
@@ -17,12 +18,28 @@ import rl "vendor:raylib"
 
 main :: proc() {
 	context.logger = log.create_console_logger()
+	tracking_allocator: mem.Tracking_Allocator
+	mem.tracking_allocator_init(&tracking_allocator, context.allocator)
+	context.allocator = mem.tracking_allocator(&tracking_allocator)
+
+	reset_tracking_allocator :: proc(a: ^mem.Tracking_Allocator) -> bool {
+		leaks := false
+		for key, value in a.allocation_map {
+			fmt.printf("%v: leaked %v bytes\n", value.location, value.size)
+			leaks = true
+		}
+		mem.tracking_allocator_clear(a)
+		return leaks
+	}
+
 	init()
 	for !rl.WindowShouldClose() {
 		input()
 		update()
 		draw()
 	}
+
+	reset_tracking_allocator(&tracking_allocator)
 }
 
 init :: proc() {
@@ -88,6 +105,7 @@ draw :: proc() {
 	if global.playing {
 		maestro.draw()
 		//effect.WaveEffect()
+		effect.WaveSpectrumEffect()
 	}
 
 	debug()
@@ -114,8 +132,14 @@ debug :: proc() {
 	rl.DrawText(fmt.ctprintf("Music time: %v", global.musicTime), 20, 40, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Editor mode: %t", global.editor), 20, 60, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Score: %v", global.score), 20, 80, 20, rl.LIGHTGRAY)
-    
-    for i in global.sampleCount-10 ..< global.sampleCount {
-	    rl.DrawText(fmt.ctprintf("%v", global.samples[i]), 20, i32(100 +(20*i)), 20, rl.LIGHTGRAY)
-    }
+
+	for i in global.sampleCount - 10 ..< global.sampleCount {
+		rl.DrawText(
+			fmt.ctprintf("%v", global.samples[i]),
+			20,
+			i32(100 + (20 * i)),
+			20,
+			rl.LIGHTGRAY,
+		)
+	}
 }
