@@ -71,6 +71,7 @@ test_to_string :: proc(t: ^testing.T) {
 
 from_file :: proc(path: string) -> []note {
 	data, success := os.read_entire_file_from_filename(path)
+	defer delete(data)
 	if !success {
 		log.errorf("Cannot read file %v", path)
 		return []note{}

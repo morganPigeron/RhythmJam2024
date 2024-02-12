@@ -14,6 +14,7 @@ displayedCircle := [5000]indexedNotes{}
 
 init :: proc() {
 	notesInFile := from_file("music.csv")
+	defer delete(notesInFile)
 	append(&notes, ..notesInFile)
 }
 
@@ -89,4 +90,8 @@ draw :: proc() {
 		}
 
 	}
+}
+
+clean :: proc() {
+	delete(notes)
 }

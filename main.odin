@@ -4,6 +4,7 @@ import c "core:c/libc"
 import "core:fmt"
 import "core:log"
 import "core:math"
+import "core:mem"
 import "core:os"
 import "core:time"
 
@@ -17,12 +18,29 @@ import rl "vendor:raylib"
 
 main :: proc() {
 	context.logger = log.create_console_logger()
+	tracking_allocator: mem.Tracking_Allocator
+	mem.tracking_allocator_init(&tracking_allocator, context.allocator)
+	context.allocator = mem.tracking_allocator(&tracking_allocator)
+
+	reset_tracking_allocator :: proc(a: ^mem.Tracking_Allocator) -> bool {
+		leaks := false
+		for key, value in a.allocation_map {
+			fmt.printf("%v: leaked %v bytes\n", value.location, value.size)
+			leaks = true
+		}
+		mem.tracking_allocator_clear(a)
+		return leaks
+	}
+
 	init()
 	for !rl.WindowShouldClose() {
 		input()
 		update()
 		draw()
 	}
+
+	clean()
+	reset_tracking_allocator(&tracking_allocator)
 }
 
 init :: proc() {
@@ -40,9 +58,17 @@ init :: proc() {
 
 	// be sure all is loaded before continuing
 	waitForGameLoad()
+	log.debug("Init done")
 }
 
 input :: proc() {
+
+	mouse := rl.GetMousePosition()
+	screenWidth := cast(f32)rl.GetScreenWidth()
+	// normalize from 1 to 0 and 0 to 1
+	global.panLeft = 1 - (mouse.x / screenWidth)
+	global.panRight = mouse.x / screenWidth
+
 	if (rl.IsKeyPressed(rl.KeyboardKey.SPACE)) {
 		rl.PlaySound(global.sound)
 		global.playing = true
@@ -79,12 +105,16 @@ draw :: proc() {
 
 	if global.playing {
 		maestro.draw()
-	}
+		//effect.WaveEffect()
 
-	effect.WaveEffect()
+	}
 
 	debug()
 	rl.EndDrawing()
+}
+
+clean :: proc() {
+	maestro.clean()
 }
 
 waitForGameLoad :: proc() {
@@ -98,6 +128,8 @@ waitForGameLoad :: proc() {
 			ready = true
 		}
 	}
+
+	time.sleep(1000)
 }
 
 debug :: proc() {
@@ -105,4 +137,5 @@ debug :: proc() {
 	rl.DrawText(fmt.ctprintf("Music time: %v", global.musicTime), 20, 40, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Editor mode: %t", global.editor), 20, 60, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Score: %v", global.score), 20, 80, 20, rl.LIGHTGRAY)
+	effect.WaveSpectrumEffect(20, 150, 150, 100)
 }
