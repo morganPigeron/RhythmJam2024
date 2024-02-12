@@ -4,6 +4,7 @@ import c "core:c/libc"
 import "core:fmt"
 import "core:math"
 import "core:testing"
+import "core:log"
 
 import rl "vendor:raylib"
 
@@ -27,11 +28,15 @@ update :: proc() {
 }
 
 processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
+    
+    // context is not available here , keep out any global variable 
+    // move logic from this c callback stuff 
+    log.debugf("sizeof buffer : %v  frames :%v", size_of(bufferData), frames)
+    global.samples = transmute([^]f32)bufferData
 
-	global.samples = transmute([^]f32)bufferData //get our type
 	global.sampleCount = frames
 
-	for frame in 0 ..< frames {
+	for frame in 0 ..= frames {
 		global.samples[frame * 2 + 0] *= global.panLeft
 		global.samples[frame * 2 + 1] *= global.panRight
 
@@ -40,9 +45,11 @@ processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
 	}
 
 	global.sampleLeft = global.sampleLeft[:global.sampleCount]
+	global.sampleRight = global.sampleRight[:global.sampleCount]
 }
 
-fft :: proc(x: ^[]complex32, n: int) {
+fft :: proc(x: []complex32) {
+    n := len(x)
 	if (n <= 1) {return}
 	//assert(n % 2 == 0, fmt.tprintf("fft need padding to be power of 2 => %v", n))
 
@@ -57,8 +64,8 @@ fft :: proc(x: ^[]complex32, n: int) {
 	}
 
 	// recurse 
-	fft(&even, n / 2)
-	fft(&odd, n / 2)
+	fft(even)
+	fft(odd)
 
 	// combine
 	for k in 0 ..< n / 2 {
@@ -84,9 +91,10 @@ test_fft :: proc(t: ^testing.T) {
 		complex(0.7, 0),
 		complex(0.3, 0),
 		complex(-0.4, 0),
+		complex(-0.4, 0),
 	}
 
-	fft(&signal, len(signal))
+	fft(signal)
 
 	for i in signal {
 		fmt.printf("r: %v c: %v\n", real(i), imag(i))

@@ -69,8 +69,8 @@ WaveSpectrumEffect :: proc() {
 		samplesToProcessRight[i] = complex(global.sampleRight[i], 0)
 	}
 
-	audio.fft(&samplesToProcessLeft, int(paddedCount))
-	audio.fft(&samplesToProcessRight, int(paddedCount))
+	audio.fft(samplesToProcessLeft)
+	audio.fft(samplesToProcessRight)
 
 	for i in 0 ..< global.sampleCount {
 		rl.DrawRectangle(
