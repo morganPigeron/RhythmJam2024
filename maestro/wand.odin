@@ -91,3 +91,7 @@ draw :: proc() {
 
 	}
 }
+
+clean :: proc() {
+	delete(notes)
+}

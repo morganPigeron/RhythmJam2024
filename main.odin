@@ -39,6 +39,7 @@ main :: proc() {
 		draw()
 	}
 
+	clean()
 	reset_tracking_allocator(&tracking_allocator)
 }
 
@@ -105,11 +106,15 @@ draw :: proc() {
 	if global.playing {
 		maestro.draw()
 		//effect.WaveEffect()
-		effect.WaveSpectrumEffect()
+
 	}
 
 	debug()
 	rl.EndDrawing()
+}
+
+clean :: proc() {
+	maestro.clean()
 }
 
 waitForGameLoad :: proc() {
@@ -132,14 +137,5 @@ debug :: proc() {
 	rl.DrawText(fmt.ctprintf("Music time: %v", global.musicTime), 20, 40, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Editor mode: %t", global.editor), 20, 60, 20, rl.LIGHTGRAY)
 	rl.DrawText(fmt.ctprintf("Score: %v", global.score), 20, 80, 20, rl.LIGHTGRAY)
-
-	for i in global.sampleCount - 10 ..< global.sampleCount {
-		rl.DrawText(
-			fmt.ctprintf("%v", global.samples[i]),
-			20,
-			i32(100 + (20 * i)),
-			20,
-			rl.LIGHTGRAY,
-		)
-	}
+	effect.WaveSpectrumEffect(20, 150, 150, 100)
 }

@@ -52,10 +52,7 @@ isPowerOfTwo :: #force_inline proc(x: u32) -> bool {
 	return x & (x - 1) == 0
 }
 
-WaveSpectrumEffect :: proc() {
-	width := cast(f32)(rl.GetScreenWidth())
-	height := cast(f32)(rl.GetScreenHeight())
-
+WaveSpectrumEffect :: proc(x: int, y: int, width: int, height: int) {
 
 	paddedCount := global.sampleCount
 	if !isPowerOfTwo(paddedCount) { 	// must be power of two for the fft
@@ -79,13 +76,25 @@ WaveSpectrumEffect :: proc() {
 	audio.fft(&samplesToProcessLeft, paddedCount)
 	audio.fft(&samplesToProcessRight, paddedCount)
 
-	rectWidth: i32 = 2
-	for i in 0 ..< global.sampleCount {
+	spectrumLength := 48
+	rectWidth: i32 = i32(math.ceil(f32(width) / f32(spectrumLength)))
+	for i in 0 ..< spectrumLength {
+
+		ampLeft := math.sqrt(
+			real(samplesToProcessLeft[i]) * real(samplesToProcessLeft[i]) +
+			imag(samplesToProcessLeft[i]) * imag(samplesToProcessLeft[i]),
+		)
+
+		ampRight := math.sqrt(
+			real(samplesToProcessRight[i]) * real(samplesToProcessRight[i]) +
+			imag(samplesToProcessRight[i]) * imag(samplesToProcessRight[i]),
+		)
+
 		rl.DrawRectangle(
-			i32(i) * i32(rectWidth),
-			i32(height) / 2,
+			i32(x) + i32(i) * i32(rectWidth),
+			i32(y) + i32(height) / 2,
 			i32(rectWidth),
-			i32(real(samplesToProcessLeft[i]) * 20),
+			i32(ampLeft * 10),
 			rl.Color {
 				cast(u8)(255 * global.panLeft),
 				cast(u8)(255 * global.panRight),
@@ -94,10 +103,10 @@ WaveSpectrumEffect :: proc() {
 			},
 		)
 		rl.DrawRectangle(
-			i32(i) * rectWidth,
-			i32(height) / 2 - i32(imag(samplesToProcessRight[i]) * 20),
+			i32(x) + i32(i) * rectWidth,
+			i32(y) + i32(height) / 2 - i32(ampRight * 10),
 			rectWidth,
-			i32(imag(samplesToProcessRight[i]) * 20),
+			i32(ampRight * 10),
 			rl.Color{255, 127, 100, 255},
 		)
 	}
