@@ -10,9 +10,6 @@ import "../audio"
 import "../global"
 
 
-//defer delete(samplesToProcessLeft)//NEVER delete memory shared with raylib !!
-//defer delete(samplesToProcessLeft)//NEVER delete memory shared with raylib !!
-
 WaveEffect :: proc() {
 	width := cast(f32)(rl.GetScreenWidth())
 	height := cast(f32)(rl.GetScreenHeight())
@@ -71,6 +68,8 @@ WaveSpectrumEffect :: proc() {
 
 	samplesToProcessLeft := make([]complex32, 2048) //FIXME this need to be optimized , 51x or 1024 can be enough
 	samplesToProcessRight := make([]complex32, 2048)
+	defer delete(samplesToProcessLeft)
+	defer delete(samplesToProcessRight)
 
 	for i in 0 ..< len(global.sampleLeft) { 	// watch out max index
 		samplesToProcessLeft[i] = complex(global.sampleLeft[i], 0)
