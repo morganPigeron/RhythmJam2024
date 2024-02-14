@@ -6,6 +6,7 @@ import "core:log"
 import "core:math"
 import "core:slice"
 import "core:testing"
+import "core:time"
 
 import rl "vendor:raylib"
 
@@ -39,9 +40,6 @@ processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
 		global.sampleLeft[frame] = global.samples[frame * 2 + 0]
 		global.sampleRight[frame] = global.samples[frame * 2 + 1]
 	}
-
-	global.sampleLeft = global.sampleLeft[:global.sampleCount]
-	global.sampleRight = global.sampleRight[:global.sampleCount]
 }
 
 fft :: proc(x: ^[]complex32, n: u32) {
@@ -94,3 +92,5 @@ test_fft :: proc(t: ^testing.T) {
 		fmt.printf("r: %v c: %v\n", real(i), imag(i))
 	}
 }
+
+//https://www.codeproject.com/Articles/619688/Quick-FFT
