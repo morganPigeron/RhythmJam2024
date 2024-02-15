@@ -42,6 +42,67 @@ processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
 	}
 }
 
+fft_sequential :: proc(x: ^[]complex32, n: u32) {
+    bit_invert(x, n)
+    calc_sub_fft(x,n)
+
+    for i in 0 ..< n {
+        x[i] = complex(
+            real(x[i]) / f16(n) * 2.0,
+            imag(x[i]) / f16(n) * 2.0,
+        )
+    }
+    x[0] = complex(
+        real(x[0]) / 2.0, 
+        imag(x[0]) / 2.0, 
+    )
+
+}
+
+bit_invert :: proc (x : ^[]complex32, n: u32) {
+    mv := n/2
+    for i in 1 ..< n {
+        k := i 
+        mv := n / 2
+        rev : u32 = 0
+        for k > 0 { // invert index 
+            if k % 2 > 0 {
+                rev += mv
+            }
+            k /= 2
+            mv /=2
+        }
+        { // switch the actual sample and the bitinverted one
+            if i < rev {
+                y := x[rev]
+                x[rev] = x[i]
+                x[i] = y
+            }
+        }
+    }
+}
+
+calc_sub_fft :: proc (x : ^[]complex32, n: u32) {
+    k :u32 = 1
+    for k <= u32(n/2) {
+        m := 0 
+        for u32(m) <= u32(n)-2*k {
+            for i in m ..< m + int(k) {
+                w : complex32 = complex(
+                    math.cos(math.PI * f32((i-m))/f32(k)),
+                    math.sin(math.PI * f32((i-m))/f32(k)),
+                )               
+                h := x[i+int(k)] * w
+                v := x[i]
+                x[i] += h
+                x[i+int(k)] = v - h
+            }
+            m += 2*int(k)
+        }
+        k *= 2
+    }
+}
+
 fft :: proc(x: ^[]complex32, n: u32) {
 	if (n <= 1) {return}
 	assert(n & (n - 1) == 0, fmt.tprintf("fft need padding to be power of 2 => %v", n))
@@ -93,4 +154,23 @@ test_fft :: proc(t: ^testing.T) {
 	}
 }
 
+@(test)
+test_fft_sequential :: proc(t: ^testing.T) {
+	signal: []complex32 =  {
+		complex(-0.9, 0),
+		complex(-0.5, 0),
+		complex(-0.1, 0),
+		complex(0.0, 0),
+		complex(0.1, 0),
+		complex(0.7, 0),
+		complex(0.3, 0),
+		complex(-0.4, 0),
+	}
+
+	fft_sequential(&signal, 8)
+
+	for i in signal {
+		fmt.printf("r: %v c: %v\n", real(i), imag(i))
+	}
+}
 //https://www.codeproject.com/Articles/619688/Quick-FFT
