@@ -28,3 +28,7 @@ display: c.int
 image: rl.Image
 texture: rl.Texture
 starTexture: rl.Texture
+
+sprite: rl.Texture2D,  
+frame: int,  
+frameSpeed: f32,  

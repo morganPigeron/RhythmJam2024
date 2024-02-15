@@ -16,6 +16,8 @@ import "maestro"
 
 import rl "vendor:raylib"
 
+
+
 main :: proc() {
 	context.logger = log.create_console_logger()
 	tracking_allocator: mem.Tracking_Allocator
@@ -86,6 +88,11 @@ update :: proc() {
 	if global.playing {
 		global.musicTime += 1
 	}
+	global.frame += global.frameSpeed
+	if global.frame >= spriteFrameCount{
+		global.frame = 2
+	}
+
 }
 
 draw :: proc() {
@@ -108,6 +115,10 @@ draw :: proc() {
 		//effect.WaveEffect()
 
 	}
+	// HOG 
+	frameWidth := global.sprite.width / spriteFrameCount  
+    frameRec := rl.Rectangle{cast(f32)global.frame * frameWidth, 0, frameWidth, global.sprite.height}  
+    rl.DrawTextureRec(global.sprite, frameRec, rl.Vector2{0, 0}, rl.WHITE) 
 
 	debug()
 	rl.EndDrawing()
@@ -115,6 +126,7 @@ draw :: proc() {
 
 clean :: proc() {
 	maestro.clean()
+	rl.UnloadTexture(global.sprite)
 }
 
 waitForGameLoad :: proc() {
