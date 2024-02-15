@@ -34,73 +34,103 @@ processAudio :: proc "c" (bufferData: rawptr, frames: c.uint) {
 	global.samples = (cast([^]f32)bufferData)[:frames * 2]
 	global.sampleCount = frames
 
+	//low pass 
+	dt: f32 = 0.16
+	rc: f32 = 0.01
+	alpha: f32 = dt / (rc + dt)
+	/*
+	global.samples[0] *= alpha
+	for i in 1 ..< frames * 2 {
+		global.samples[i] = alpha * global.samples[i - 1] + (1 - alpha) * global.samples[i]
+	}
+	*/
+	//low pass end 
+
+	//high pass
+	/*
+	dth: f32 = 0.16
+	rch: f32 = 0.01
+	alphaH := rch / (rch + dth)
+	for i in 1 ..< frames {
+		left := i * 2 + 0
+		right := i * 2 + 1
+		global.samples[left] =
+			alphaH * global.samples[left - 1] +
+			alpha * (global.samples[left] - global.samples[left - 1])
+
+		global.samples[right] =
+			alphaH * global.samples[right - 1] +
+			alpha * (global.samples[right] - global.samples[right - 1])
+	}
+	*/
+	//high pass filter 
+
+
 	for frame in 0 ..< frames {
-		global.samples[frame * 2 + 0] *= global.panLeft
-		global.samples[frame * 2 + 1] *= global.panRight
-		global.sampleLeft[frame] = global.samples[frame * 2 + 0]
-		global.sampleRight[frame] = global.samples[frame * 2 + 1]
+		left := frame * 2 + 0
+		right := frame * 2 + 1
+		global.samples[left] *= global.panLeft * global.panVertical
+		global.samples[right] *= global.panRight * global.panVertical
+
+		global.sampleLeft[frame] = global.samples[left]
+		global.sampleRight[frame] = global.samples[right]
 	}
 }
 
+
 fft_sequential :: proc(x: ^[]complex32, n: u32) {
-    bit_invert(x, n)
-    calc_sub_fft(x,n)
+	bit_invert(x, n)
+	calc_sub_fft(x, n)
 
-    for i in 0 ..< n {
-        x[i] = complex(
-            real(x[i]) / f16(n) * 2.0,
-            imag(x[i]) / f16(n) * 2.0,
-        )
-    }
-    x[0] = complex(
-        real(x[0]) / 2.0, 
-        imag(x[0]) / 2.0, 
-    )
+	for i in 0 ..< n {
+		x[i] = complex(real(x[i]) / f16(n) * 2.0, imag(x[i]) / f16(n) * 2.0)
+	}
+	x[0] = complex(real(x[0]) / 2.0, imag(x[0]) / 2.0)
 
 }
 
-bit_invert :: proc (x : ^[]complex32, n: u32) {
-    mv := n/2
-    for i in 1 ..< n {
-        k := i 
-        mv := n / 2
-        rev : u32 = 0
-        for k > 0 { // invert index 
-            if k % 2 > 0 {
-                rev += mv
-            }
-            k /= 2
-            mv /=2
-        }
-        { // switch the actual sample and the bitinverted one
-            if i < rev {
-                y := x[rev]
-                x[rev] = x[i]
-                x[i] = y
-            }
-        }
-    }
+bit_invert :: proc(x: ^[]complex32, n: u32) {
+	mv := n / 2
+	for i in 1 ..< n {
+		k := i
+		mv := n / 2
+		rev: u32 = 0
+		for k > 0 { 	// invert index 
+			if k % 2 > 0 {
+				rev += mv
+			}
+			k /= 2
+			mv /= 2
+		}
+		{ 	// switch the actual sample and the bitinverted one
+			if i < rev {
+				y := x[rev]
+				x[rev] = x[i]
+				x[i] = y
+			}
+		}
+	}
 }
 
-calc_sub_fft :: proc (x : ^[]complex32, n: u32) {
-    k :u32 = 1
-    for k <= u32(n/2) {
-        m := 0 
-        for u32(m) <= u32(n)-2*k {
-            for i in m ..< m + int(k) {
-                w : complex32 = complex(
-                    math.cos(math.PI * f32((i-m))/f32(k)),
-                    math.sin(math.PI * f32((i-m))/f32(k)),
-                )               
-                h := x[i+int(k)] * w
-                v := x[i]
-                x[i] += h
-                x[i+int(k)] = v - h
-            }
-            m += 2*int(k)
-        }
-        k *= 2
-    }
+calc_sub_fft :: proc(x: ^[]complex32, n: u32) {
+	k: u32 = 1
+	for k <= u32(n / 2) {
+		m := 0
+		for u32(m) <= u32(n) - 2 * k {
+			for i in m ..< m + int(k) {
+				w: complex32 = complex(
+					math.cos(math.PI * f32((i - m)) / f32(k)),
+					math.sin(math.PI * f32((i - m)) / f32(k)),
+				)
+				h := x[i + int(k)] * w
+				v := x[i]
+				x[i] += h
+				x[i + int(k)] = v - h
+			}
+			m += 2 * int(k)
+		}
+		k *= 2
+	}
 }
 
 fft :: proc(x: ^[]complex32, n: u32) {

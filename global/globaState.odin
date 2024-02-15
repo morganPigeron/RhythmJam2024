@@ -12,6 +12,7 @@ score := 0
 
 panLeft: f32
 panRight: f32
+panVertical: f32
 sound: rl.Sound
 playing := false
 
