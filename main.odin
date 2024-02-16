@@ -67,9 +67,11 @@ input :: proc() {
 
 	mouse := rl.GetMousePosition()
 	screenWidth := cast(f32)rl.GetScreenWidth()
+	screenHeight := cast(f32)rl.GetScreenHeight()
 	// normalize from 1 to 0 and 0 to 1
 	global.panLeft = 1 - (mouse.x / screenWidth)
 	global.panRight = mouse.x / screenWidth
+	global.panVertical = 1 - (mouse.y / screenHeight) / 3
 
 	if (rl.IsKeyPressed(rl.KeyboardKey.SPACE)) {
 		rl.PlaySound(global.sound)

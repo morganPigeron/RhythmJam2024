@@ -66,6 +66,13 @@ draw :: proc() {
 		if uint(global.musicTime) == note.time ||
 		   uint(global.musicTime) < (note.time + note.duration) &&
 			   uint(global.musicTime) > note.time {
+
+			rl.DrawCircle(
+				i32(note.x),
+				i32(note.y),
+				f32(note.time + note.duration - uint(global.musicTime)),
+				rl.Color{255, 255, 0, 100},
+			)
 			rl.DrawCircle(i32(note.x), i32(note.y), f32(note.size), rl.RED)
 			displayedCircle[displayed] = indexedNotes{i, note}
 			displayed += 1
@@ -77,8 +84,9 @@ draw :: proc() {
 	if !global.editor && rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
 		for indexedNote in displayedCircle[:displayed] {
 			note := indexedNote.note
-			if rl.CheckCollisionPointCircle(
+			if rl.CheckCollisionCircles(
 				   mouse,
+				   20,
 				   rl.Vector2{f32(note.x), f32(note.y)},
 				   f32(note.size),
 			   ) {

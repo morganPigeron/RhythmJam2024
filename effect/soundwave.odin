@@ -73,8 +73,8 @@ WaveSpectrumEffect :: proc(x: int, y: int, width: int, height: int) {
 		samplesToProcessRight[i] = complex(global.sampleRight[i], 0)
 	}
 
-	audio.fft(&samplesToProcessLeft, paddedCount)
-	audio.fft(&samplesToProcessRight, paddedCount)
+	audio.fft_sequential(&samplesToProcessLeft, paddedCount)
+	audio.fft_sequential(&samplesToProcessRight, paddedCount)
 
 	spectrumLength := 48
 	rectWidth: i32 = i32(math.ceil(f32(width) / f32(spectrumLength)))
@@ -90,11 +90,13 @@ WaveSpectrumEffect :: proc(x: int, y: int, width: int, height: int) {
 			imag(samplesToProcessRight[i]) * imag(samplesToProcessRight[i]),
 		)
 
+        ampli :f16= 5000.0
+
 		rl.DrawRectangle(
 			i32(x) + i32(i) * i32(rectWidth),
 			i32(y) + i32(height) / 2,
 			i32(rectWidth),
-			i32(ampLeft * 10),
+			i32(ampLeft * ampli),
 			rl.Color {
 				cast(u8)(255 * global.panLeft),
 				cast(u8)(255 * global.panRight),
@@ -104,9 +106,9 @@ WaveSpectrumEffect :: proc(x: int, y: int, width: int, height: int) {
 		)
 		rl.DrawRectangle(
 			i32(x) + i32(i) * rectWidth,
-			i32(y) + i32(height) / 2 - i32(ampRight * 10),
+			i32(y) + i32(height) / 2 - i32(ampRight * ampli),
 			rectWidth,
-			i32(ampRight * 10),
+			i32(ampRight * ampli),
 			rl.Color{255, 127, 100, 255},
 		)
 	}
