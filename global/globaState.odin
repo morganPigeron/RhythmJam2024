@@ -30,6 +30,9 @@ image: rl.Image
 texture: rl.Texture
 starTexture: rl.Texture
 
-sprite: rl.Texture2D,  
-frame: int,  
-frameSpeed: f32,  
+sprite: rl.Texture2D
+frame: int
+frameSpeed: f32 
+spriteFrameCount: int = 2
+frameTimer: f32  
+spritePositions: [40]rl.Vector2  

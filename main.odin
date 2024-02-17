@@ -58,6 +58,13 @@ init :: proc() {
 	graphics.init()
 	maestro.init()
 
+	for i in 0..<40 {  
+		global.spritePositions[i] = rl.Vector2{  
+			cast(f32)rl.GetRandomValue(500, 1300),  
+			cast(f32)rl.GetRandomValue(870, 850),  
+		}  
+	}  
+
 	// be sure all is loaded before continuing
 	waitForGameLoad()
 	log.debug("Init done")
@@ -72,7 +79,7 @@ input :: proc() {
 	global.panLeft = 1 - (mouse.x / screenWidth)
 	global.panRight = mouse.x / screenWidth
 	global.panVertical = 1 - (mouse.y / screenHeight) / 3
-
+	
 	if (rl.IsKeyPressed(rl.KeyboardKey.SPACE)) {
 		rl.PlaySound(global.sound)
 		global.playing = true
@@ -90,10 +97,14 @@ update :: proc() {
 	if global.playing {
 		global.musicTime += 1
 	}
-	global.frame += global.frameSpeed
-	if global.frame >= spriteFrameCount{
-		global.frame = 2
-	}
+	global.frameTimer += global.frameSpeed  
+	if global.frameTimer >= 1.0 {  
+    global.frameTimer -= 1.0  
+    global.frame += 1  
+    if global.frame >= global.spriteFrameCount {  
+        global.frame = 0  
+    }  
+}
 
 }
 
@@ -118,10 +129,16 @@ draw :: proc() {
 
 	}
 	// HOG 
-	frameWidth := global.sprite.width / spriteFrameCount  
-    frameRec := rl.Rectangle{cast(f32)global.frame * frameWidth, 0, frameWidth, global.sprite.height}  
-    rl.DrawTextureRec(global.sprite, frameRec, rl.Vector2{0, 0}, rl.WHITE) 
+	
+	
+	frameWidth := global.sprite.width / cast(i32)global.spriteFrameCount
+    frameRec := rl.Rectangle{cast(f32)global.frame * cast(f32)frameWidth, 0, cast(f32)frameWidth, cast(f32)global.sprite.height}  
+    rl.DrawTextureRec(global.sprite, frameRec, rl.Vector2{870, 850}, rl.WHITE) 
 
+	// Group of hog :
+	for i in 0..<40 {  
+		rl.DrawTextureRec(global.sprite, frameRec, global.spritePositions[i], rl.WHITE)   
+	}  
 	debug()
 	rl.EndDrawing()
 }
