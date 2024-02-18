@@ -112,8 +112,48 @@ draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.BLACK)
 	rl.DrawTexture(global.texture, 0, 0, rl.WHITE)
+	// HOG 
+	
+	
+	frameWidth := global.sprite.width / cast(i32)global.spriteFrameCount
+    frameRec := rl.Rectangle{cast(f32)global.frame * cast(f32)frameWidth, 0, cast(f32)frameWidth, cast(f32)global.sprite.height}  
+    rl.DrawTextureRec(global.sprite, frameRec, rl.Vector2{870, 850}, rl.WHITE) 
+
+	// Group of hog :
+	for i in 0..<40 {  
+		rl.DrawTextureRec(global.sprite, frameRec, global.spritePositions[i], rl.WHITE)   
+	}  
 
 	if !global.playing {
+
+		rl.DrawText(
+			"Work in progress !",
+			rl.GetScreenWidth() / 2 - 100,
+			20,
+			20,
+			rl.LIGHTGRAY,
+		)
+		rl.DrawText(
+			"Press E to enable editor mode, and start placing notes !",
+			rl.GetScreenWidth() / 2 - 100,
+			40,
+			20,
+			rl.LIGHTGRAY,
+		)
+		rl.DrawText(
+			"When in editor mode press S to save your notes",
+			rl.GetScreenWidth() / 2 - 100,
+			60,
+			20,
+			rl.LIGHTGRAY,
+		)
+		rl.DrawText(
+			"Press ESC to quit the game",
+			rl.GetScreenWidth() / 2 - 100,
+			80,
+			20,
+			rl.LIGHTGRAY,
+		)
 		rl.DrawText(
 			"Press space to play the music",
 			rl.GetScreenWidth() / 2 - 170,
@@ -128,17 +168,7 @@ draw :: proc() {
 		//effect.WaveEffect()
 
 	}
-	// HOG 
-	
-	
-	frameWidth := global.sprite.width / cast(i32)global.spriteFrameCount
-    frameRec := rl.Rectangle{cast(f32)global.frame * cast(f32)frameWidth, 0, cast(f32)frameWidth, cast(f32)global.sprite.height}  
-    rl.DrawTextureRec(global.sprite, frameRec, rl.Vector2{870, 850}, rl.WHITE) 
 
-	// Group of hog :
-	for i in 0..<40 {  
-		rl.DrawTextureRec(global.sprite, frameRec, global.spritePositions[i], rl.WHITE)   
-	}  
 	debug()
 	rl.EndDrawing()
 }
