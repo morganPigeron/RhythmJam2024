@@ -10,13 +10,17 @@ import "core:time"
 
 import rl "vendor:raylib"
 
+import "../encoded"
 import "../global"
 
 
 init :: proc() {
 	rl.InitAudioDevice()
 	rl.AttachAudioMixedProcessor(processAudio)
-	global.sound = rl.LoadSound("assets/audio/Toreadors.mp3")
+	//global.sound = rl.LoadSound("assets/audio/Toreadors.mp3")
+	global.sound = rl.LoadSoundFromWave(
+		rl.LoadWaveFromMemory(".mp3", &encoded.aCoupleOfPills, len(encoded.aCoupleOfPills)),
+	)
 }
 
 update :: proc() {
@@ -166,7 +170,7 @@ fft :: proc(x: ^[]complex32, n: u32) {
 
 @(test)
 test_fft :: proc(t: ^testing.T) {
-	signal: []complex32 =  {
+	signal: []complex32 = {
 		complex(-0.9, 0),
 		complex(-0.5, 0),
 		complex(-0.1, 0),
@@ -186,7 +190,7 @@ test_fft :: proc(t: ^testing.T) {
 
 @(test)
 test_fft_sequential :: proc(t: ^testing.T) {
-	signal: []complex32 =  {
+	signal: []complex32 = {
 		complex(-0.9, 0),
 		complex(-0.5, 0),
 		complex(-0.1, 0),
